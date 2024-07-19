@@ -1,7 +1,9 @@
 #include <rosnavigatePnP/tiago_server.h>
 #include <ros/ros.h>
 #include <move_base_msgs/MoveBaseAction.h>
+#include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 TiagoServer::TiagoServer(std::string name)
     : server(nh, name, boost::bind(&TiagoServer::navAndDetectCallback, this, _1), false)
@@ -10,49 +12,49 @@ TiagoServer::TiagoServer(std::string name)
     ROS_INFO_STREAM("(Server) TIAGO SERVER STARTED");
 }
 
-void TiagoServer::doDetection()
-{
-    ROS_INFO_STREAM("(Server) ROBOT IS STARTING THE DETECTION");
-    feedback.state = 2; 
-    server.publishFeedback(feedback);
+// void TiagoServer::doDetection()
+// {
+//     ROS_INFO_STREAM("(Server) ROBOT IS STARTING THE DETECTION");
+//     feedback.state = 2; 
+//     server.publishFeedback(feedback);
 
-    sensor_msgs::LaserScanConstPtr msg = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", nh);
+//     sensor_msgs::LaserScanConstPtr msg = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", nh);
 
-    if (!msg)
-    {
-        ROS_WARN("(Server) Failed to get laser scan data within timeout period");
-        feedback.state = 4;
-        server.publishFeedback(feedback);
-        server.setAborted(result);
-        return;
-    }
+//     if (!msg)
+//     {
+//         ROS_WARN("(Server) Failed to get laser scan data within timeout period");
+//         feedback.state = 4;
+//         server.publishFeedback(feedback);
+//         server.setAborted(result);
+//         return;
+//     }
 
-    detector_.obstacle_detection(msg);
+//     detector_.obstacle_detection(msg);
 
-    if (!detector_.isDetectionSuccessful()) 
-    {
-        ROS_WARN("(Server) Obstacle detection failed");
-        feedback.state = 4; 
-        server.publishFeedback(feedback);
-        server.setAborted(result);
-        return;
-    }
+//     if (!detector_.isDetectionSuccessful()) 
+//     {
+//         ROS_WARN("(Server) Obstacle detection failed");
+//         feedback.state = 4; 
+//         server.publishFeedback(feedback);
+//         server.setAborted(result);
+//         return;
+//     }
 
-    int obstacle_count = detector_.getObstacleCount();
-    ROS_INFO_STREAM("(Server) NUMBER OF OBSTACLES DETECTED: " << obstacle_count);
+//     int obstacle_count = detector_.getObstacleCount();
+//     ROS_INFO_STREAM("(Server) NUMBER OF OBSTACLES DETECTED: " << obstacle_count);
 
-    geometry_msgs::PoseArray obstacles = detector_.getObstacles();
-    for (const auto& pose : obstacles.poses) {
-        geometry_msgs::Point obstaclepoint;
-        obstaclepoint.x = pose.position.x;
-        obstaclepoint.y = pose.position.y;
-        obstaclepoint.z = pose.position.z;
-        result.obstacles.push_back(obstaclepoint);
-    }
+//     geometry_msgs::PoseArray obstacles = detector_.getObstacles();
+//     for (const auto& pose : obstacles.poses) {
+//         geometry_msgs::Point obstaclepoint;
+//         obstaclepoint.x = pose.position.x;
+//         obstaclepoint.y = pose.position.y;
+//         obstaclepoint.z = pose.position.z;
+//         result.obstacles.push_back(obstaclepoint);
+//     }
 
-    ROS_INFO_STREAM("(Server) DETECTION IS FINISHED");
-    server.setSucceeded(result);
-}
+//     ROS_INFO_STREAM("(Server) DETECTION IS FINISHED");
+//     server.setSucceeded(result);
+// }
 
 
 bool TiagoServer::auto_moving_routine(const move_base_msgs::MoveBaseGoal &a_goal_pose)
@@ -92,17 +94,20 @@ void TiagoServer::doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal
 
     goalMsg.target_pose.pose.position.x = goal->x;
     goalMsg.target_pose.pose.position.y = goal->y;
-    goalMsg.target_pose.pose.orientation.z = goal->orZ;
+    goalMsg.target_pose.pose.position.z = goal->z;
 
-    // All is wrt. world (map) ref frame
-    goalMsg.target_pose.pose.orientation.w = 1.0;
+     // All is wrt. world (map) ref frame
+    goalMsg.target_pose.pose.orientation.x = goal->orx;
+    goalMsg.target_pose.pose.orientation.y = goal->ory;
+    goalMsg.target_pose.pose.orientation.z = goal->orz;  
+    goalMsg.target_pose.pose.orientation.w = goal->orw;
 
     // Use auto_moving_routine to send the goal and wait for the result
     bool success = auto_moving_routine(goalMsg);
 
     if (success)
     {
-        ROS_INFO_STREAM("(Server) ROBOT IS AT THE FINAL GOAL POSITION");
+        ROS_INFO_STREAM("(Server) ROBOT IS AT THE GOAL POSITION");
         feedback.state = 1; //(Client) ROBOT IS ARRIVED TO THE FINAL POSE.
         server.publishFeedback(feedback);
 
@@ -110,7 +115,7 @@ void TiagoServer::doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal
         ros::Duration(10.0).sleep();
 
         // Start detection only if navigation is successful
-        doDetection(); 
+        // doDetection(); 
     }
     else
     {
