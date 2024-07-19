@@ -133,27 +133,27 @@ set(SOURCE_FILES_MANIPULATION
 # naigation_node executable
 add_executable(navigation_node ${SOURCE_FILES_NAVIGATION})
 target_link_libraries(navigation_node ${catkin_LIBRARIES})
-add_dependencies(navigation_node ${assignment2_EXPORTED_TARGETS})
+add_dependencies(navigation_node ${rosnavigatePnP_EXPORTED_TARGETS})
 
 #detection_node executable
 add_executable(detection_node ${SOURCE_FILES_DETECTION})
 target_link_libraries(detection_node ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
-add_dependencies(detection_node ${assignment2_EXPORTED_TARGETS})
+add_dependencies(detection_node ${rosnavigatePnP_EXPORTED_TARGETS})
 
 #manipulation_node executable
 add_executable(manipulation_node ${SOURCE_FILES_MANIPULATION})
 target_link_libraries(manipulation_node ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
-add_dependencies(manipulation_node ${assignment2_EXPORTED_TARGETS})
+add_dependencies(manipulation_node ${rosnavigatePnP_EXPORTED_TARGETS})
 
 #scan_node executable
 add_executable(scan_node ${SOURCE_FILES_SCAN} )
 target_link_libraries(scan_node ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
-add_dependencies(scan_node ${assignment2_EXPORTED_TARGETS})
+add_dependencies(scan_node ${rosnavigatePnP_EXPORTED_TARGETS})
 
 # client_node executable
 add_executable(client_node ${SOURCE_FILES_CLIENT})
 target_link_libraries(client_node ${catkin_LIBRARIES})
-add_dependencies(client_node ${assignment2_EXPORTED_TARGETS})
+add_dependencies(client_node ${rosnavigatePnP_EXPORTED_TARGETS})
 
 
 #############
