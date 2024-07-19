@@ -1,0 +1,8 @@
+bool ready
+int32 requested_id
+---
+apriltag_ros/AprilTagDetection[] detections
+
+## geometry_msgs/Pose[] poses
+## int32[] poses_ids
+## float32[] poses_sizes

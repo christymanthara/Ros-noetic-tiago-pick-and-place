@@ -1,0 +1,11 @@
+## Request
+
+bool ready
+sensor_msgs/LaserScan msg
+---
+## Response
+
+# Poses vector (it should contain all the three cylinders)
+geometry_msgs/Pose[] poses
+# Poses[0] will be associated to id color in ids_associated_colors[0] and so on 
+int32[] ids_associated_colors
