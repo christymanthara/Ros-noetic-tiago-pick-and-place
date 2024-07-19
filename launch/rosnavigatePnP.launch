@@ -1,0 +1,33 @@
+<launch>
+
+  <!-- Step 1: Start Simulation -->
+  <include file="$(find tiago_iaslab_simulation)/launch/start_simulation.launch">
+    <arg name="world_name" value="ias_lab_room_full_tables"/>
+  </include>
+
+  <!-- Step 2: Launch Apriltag launch file-->
+  <include file="$(find tiago_iaslab_simulation)/launch/apriltag.launch" />
+
+  <!-- Step 3: Launch Navigation launch file -->
+  <include file="$(find tiago_iaslab_simulation)/launch/navigation.launch" />
+
+  <!-- Step 4: Run human_node -->
+  <node pkg="tiago_iaslab_simulation" type="human_node" name="human_node" output="screen" />
+
+  <!-- Step 5: Run navigation_node -->
+  <node pkg="rosnavigatePnP" type="navigation_node" name="navigation_node" output="screen" />
+  
+  <!-- Step 6: Run rviz -->
+  <!-- node pkg="rviz" type="rviz" name="rviz" output="screen" -->
+  
+  <!-- Step 7: Run detection_node -->
+  <node pkg="rosnavigatePnP" type="detection_node" name="detection_node" output="screen" />
+  
+  <!-- Step 8: Run manipulation_node Node -->
+  <!-- node pkg="rosnavigatePnP" type="manipulation_node" name="manipulation_node" output="screen" -->
+
+  <!-- Step 9: Run scanNode Node -->
+  <!-- node pkg="rosnavigatePnP" type="scan_node" name="scan_node" output="screen" -->
+
+ </launch>
+
