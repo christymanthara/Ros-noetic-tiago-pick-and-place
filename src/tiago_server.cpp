@@ -118,7 +118,7 @@ void TiagoServer::doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal
         feedback.state = 1; //(Client) ROBOT IS ARRIVED TO THE FINAL POSE.
         server.publishFeedback(feedback);
 
-        // Delay of 20 seconds
+        // Delay of 10 seconds
         ros::Duration(10.0).sleep();
 
         // Start detection only if navigation is successful
@@ -136,9 +136,91 @@ void TiagoServer::doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal
 void TiagoServer::navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal)
 {
     // Calling the navigation function to navigate to the final pose
-    doNavigation(goal);
-}
+    // doNavigation(goal);
+        feedback.state = 0;
+        server.publishFeedback(feedback);
+        
+        //Initializing data for goalPosition
+        int id = goal->id;
+        geometry_msgs::Pose pose;
+        
+	// MOVING
+     //   feedback.state = 1;
+     //   server.publishFeedback(feedback);
+        
+        switch (goal->operation) 
+        {        
+            case 1:
+                ROS_INFO("Operation 1, reaching the table passing through home position");
+                feedback.state = 1;
+                server.publishFeedback(feedback);
+                
+                executionDone = doNavigation(createGoal(8.4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
+                if (executionDone) 
+                	executionDone = goToTable(id);
+                             
+                break;
 
+            case 2:
+                ROS_INFO("Operation 2, reaching the scan position");
+                executionDone = goToScanPosition(id); 
+                break;
+                
+            case 3:
+            	ROS_INFO("Operation 3, reaching the place position");
+
+				pose = goal->detection.pose.pose.pose;
+            	executionDone = goToCylinder(pose);
+            	
+            	break;
+       
+       		case 4:
+       		   	ROS_INFO("Operation 4, reaching home position, then table position");
+       			executionDone = goToHome(id);
+       			if (executionDone) 
+       				executionDone = goToTable(id);
+       				
+                break;
+                
+            case 5:
+               	ROS_INFO("Operation 5, reaching HOME position.");
+               	executionDone = goToHome(id);
+               	
+               	break;
+               	
+            default:
+                ROS_ERROR("Error in Navigation CallBack.");
+                break;
+        }
+
+	// ARRIVED
+        if (executionDone) {
+        //    feedback.state = 2; // Sending REACHED_GOAL to feedback
+        //    server.publishFeedback(feedback);
+            result.arrivedstatus = executionDone;
+            server.setSucceeded(result);
+        } else {
+            ROS_INFO("Navigation aborted - Timeout reached");
+            result.arrivedstatus = executionDone;
+            server.setAborted(result_);
+        }
+    }
+
+
+
+
+rosnavigatePnP::TiagoMoveGoal TiagoServer::createGoal(double x, double y, double z, double orx, double ory, double orz, double orw)
+{
+    rosnavigatePnP::TiagoMoveGoal goal;
+    goal.x = x;
+    goal.y = y;
+    goal.z = z;
+    goal.orx = orx;
+    goal.ory = ory;
+    goal.orz = orz;
+    goal.orw = orw;
+    return goal;
+}
 
 bool TiagoServer::goToTable(int id) 
 {
@@ -149,36 +231,24 @@ bool TiagoServer::goToTable(int id)
     rosnavigatePnP::TiagoMoveGoal goal;
     
     // Set the goal based on the table ID
-    switch (id) {
+     switch (id) {
         case 1:
             // Final position for BLUE
-            goal.x = 8.524;
-            goal.y = -2.268;
-            goal.z = 0.0;
-            goal.orx = 0.0;
-            goal.ory = 0.0;
-            goal.orz = -0.806;
-            goal.orw = 0.308;
+            goal = createGoal(8.15, -2.1, 0.0, 0.0, 0.0, -0.819152, -0.573576);
             break;
         case 2:
+            //second waypoint
+            goal = createGoal(8.40, -4.2, 0.0, 0.0, 0.0, 1.0, 0.0);
+            doNavigation(goal);
             // Final position for GREEN
-            goal.x = 7.647;
-            goal.y = -4.090;
-            goal.z = 0.0;
-            goal.orx = 0.0;
-            goal.ory = 0.0;
-            goal.orz = 0.695;
-            goal.orw = 0.719;
+            createGoal(7.50, -4.00, 0.0, 0.0, 0.0, 0.573576, 0.819152);
+
+
             break;
         case 3:
             // Final position for RED
-            goal.x = 7.525;
-            goal.y = -2.068;
-            goal.z = 0.0;
-            goal.orx = 0.0;
-            goal.ory = 0.0;
-            goal.orz = -0.706;
-            goal.orw = 0.708;
+            goal = createGoal(7.20, -2.1, 0.0, 0.0, 0.0, -0.422618, 0.906308);
+;
             break;
         default:
             ROS_ERROR("Error with object ordering");
@@ -197,7 +267,82 @@ bool TiagoServer::goToTable(int id)
     return true;
 }
 
+bool TiagoServer::goToScanPosition(int id) {
+        if (id == 1 || id == 3) 
+        {
 
+			feedback.state = 1;
+			server.publishFeedback(feedback);
+            
+            doNavigation(createGoal(8.4, -2, 0.0, 0.0, 0.0, 0.0, 1.0));
+            
+            feedback.state = 2;
+            server.publishFeedback(feedback);
+            
+            feedback.state = 0;
+			server.publishFeedback(feedback);
+		
+            
+        }else
+        {
+        	feedback.state = 1;
+			server.publishFeedback(feedback);
+            
+            // tiago started crashing into the table after taking the 1st video, so we added this waypoint
+            doNavigation(createGoal(8.0, -4.3, 0.0, 0.0, 0.0, 0.0, 1.0));
+            
+            feedback.state = 2;
+            server.publishFeedback(feedback);
+            
+            feedback.state = 0;
+			server.publishFeedback(feedback);
+        }
+        
+
+        // 2nd Waypoint to look at the cylinders from the center
+		feedback.state = 1;
+		server.publishFeedback(feedback);
+		
+        doNavigation(createGoal(10.3, -4.3, 0.0, 0.0, 0.0, 0.0, 1.0));
+        
+        bool returned = doNavigation(createGoal(11.33, -2.5, 0.0, 0.0, 0.0, 0.731354, 0.681998));
+        if(returned){
+        	feedback.state = 2;
+            server.publishFeedback(feedback);
+        }
+        
+        feedback.state = 0;
+		server.publishFeedback(feedback);
+		
+        
+        return returned;
+    }
+    
+     bool TiagoServer::goToCylinder(geometry_msgs::Pose pose) {
+
+		feedback.state = 1;
+		server.publishFeedback(feedback);
+        
+        return doNavigation(pose.position.x, pose.position.y, pose.position.z, 90.0);
+    }
+
+bool TiagoServer::goHome(int id){
+       ROS_INFO("Operation 0, going HOME");
+       
+       doNavigation(createGoal(10.3, -4.3, 0.0, 0.0, 0.0, 1.0, 0.0));
+       
+       bool returned = doNavigation(createGoal(8.4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));	 // HOME
+       if(returned){
+        	feedback.state = 2;
+            server.publishFeedback(feedback);
+        }
+        
+        feedback.state = 0;
+		server.publishFeedback(feedback);
+		
+        
+        return returned;
+    }
 
 
 int main(int argc, char **argv)

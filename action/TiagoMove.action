@@ -7,10 +7,11 @@ float64 orx
 float64 ory
 float64 orz
 float64 orw
-
+int32 operation
 ---
 #Result definition
 geometry_msgs/Point[] obstacles
+bool arrivedstatus
 ---
 #feedback
 float64 actualX
