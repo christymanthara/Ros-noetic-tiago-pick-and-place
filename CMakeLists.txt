@@ -43,7 +43,7 @@ generate_messages(
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-  CATKIN_DEPENDS actionlib roscpp std_msgs message_runtime
+  CATKIN_DEPENDS actionlib roscpp std_msgs message_runtime geometry_msgs
 )
 
 ###########
@@ -56,6 +56,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}/rosnavigatePnP
 )
 
 ## Declare a C++ executable
@@ -72,6 +73,10 @@ target_link_libraries(tiago_server
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
 )
+
+## Ensure that messages are generated before your executables are built
+add_dependencies(tiago_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(tiago_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 #############
 ## Install ##
@@ -101,4 +106,3 @@ install(TARGETS tiago_client tiago_server
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-

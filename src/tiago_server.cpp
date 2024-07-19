@@ -140,35 +140,63 @@ void TiagoServer::navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstP
 }
 
 
-bool goToTable(int id) 
-    {
-		feedback.status = 1;
-		server.publishFeedback(feedback);
-		
-		switch (id) {
-		    case 1:
-		        // Final position for BLUE
-		        return doNavigation(8.524, -2.268, 0, 0, 0, -0.806, 0.308);
-		    case 2:
-		        // 2nd waypoint
-		        doNavigation(8.40, -4.2, 0.0, 180.0);
-		        // Final position for GREEN
-		        return doNavigation(7.647, -4.090, 0, 0, 0,  0.695, 0.719);
-		    case 3:
-		        // Final position for RED
-		        return doNavigation(7.525, -2.068, 0, 0, 0, -0.706, 0.708);
-		    default:
-		        ROS_ERROR("Error with object ordering");
-		        return false;
-		}
-        feedback.status = 2;
-		server.publishFeedback(feedback);
-		
-	            
-        feedback.status = 0;
-		server.publishFeedback(feedback);
-		
+bool TiagoServer::goToTable(int id) 
+{
+    feedback.state = 1;
+    server.publishFeedback(feedback);
+
+    // Create the goal object
+    rosnavigatePnP::TiagoMoveGoal goal;
+    
+    // Set the goal based on the table ID
+    switch (id) {
+        case 1:
+            // Final position for BLUE
+            goal.x = 8.524;
+            goal.y = -2.268;
+            goal.z = 0.0;
+            goal.orx = 0.0;
+            goal.ory = 0.0;
+            goal.orz = -0.806;
+            goal.orw = 0.308;
+            break;
+        case 2:
+            // Final position for GREEN
+            goal.x = 7.647;
+            goal.y = -4.090;
+            goal.z = 0.0;
+            goal.orx = 0.0;
+            goal.ory = 0.0;
+            goal.orz = 0.695;
+            goal.orw = 0.719;
+            break;
+        case 3:
+            // Final position for RED
+            goal.x = 7.525;
+            goal.y = -2.068;
+            goal.z = 0.0;
+            goal.orx = 0.0;
+            goal.ory = 0.0;
+            goal.orz = -0.706;
+            goal.orw = 0.708;
+            break;
+        default:
+            ROS_ERROR("Error with object ordering");
+            return false;
     }
+
+    // Call the existing doNavigation method with the goal object
+    doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal));
+
+    feedback.state = 2;
+    server.publishFeedback(feedback);
+            
+    feedback.state = 0;
+    server.publishFeedback(feedback);
+
+    return true;
+}
+
 
 
 
