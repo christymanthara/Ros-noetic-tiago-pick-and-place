@@ -1,13 +1,14 @@
 #include <ros/ros.h>
 #include <rosnavigatePnP/tiago_client.h>
 
-// Constructor for the TiagoClient class
-TiagoClient::TiagoClient(float x, float y, float orZ, std::string clientName): client(clientName, true)
+// Constructor for the TiagoClient class also handles the poses
+TiagoClient::TiagoClient(float x, float y, float z, std::string clientName): client(clientName, true)
 {
     ROS_INFO("(Client) Tiago Client started");
     this->x = x;
     this->y = y;
-    this->orZ = orZ;
+    this->z = z;
+
 }
 
 // Callback for when robot starts the navigation
@@ -44,7 +45,7 @@ void TiagoClient::sendGoal()
     // set the goal position
     goal.x = x;
     goal.y = y;
-    goal.orZ = orZ;
+    goal.z = z;
 
     ROS_INFO("(Client) Sending goal");
     client.sendGoal(goal, boost::bind(&TiagoClient::doneCb, this, _1, _2),
@@ -57,10 +58,10 @@ void TiagoClient::doneCb(const actionlib::SimpleClientGoalState &state,const ros
     if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
     {	
 		ROS_INFO("(Client) ROBOT HAS FINISHED: NAVIGATION AND DETECTION ARE DONE"); // success of the code
-		for (int i = 0; i < result->obstacles.size(); i++)
-			{
-            ROS_INFO_STREAM("OBJECT DETECTED X : " << result->obstacles[i].x << " OBJECT DETECTED Y : " << result->obstacles[i].y);
-			}
+		// for (int i = 0; i < result->obstacles.size(); i++)
+		// 	{
+        //     ROS_INFO_STREAM("OBJECT DETECTED X : " << result->obstacles[i].x << " OBJECT DETECTED Y : " << result->obstacles[i].y);
+		// 	}
         
         
     }
@@ -69,6 +70,7 @@ void TiagoClient::doneCb(const actionlib::SimpleClientGoalState &state,const ros
         ROS_WARN("(Client) ROBOT HAS FAILED: "); // failed
     }                                            // if-else 
 }
+
 
 int main(int argc, char** argv)
 {
@@ -80,12 +82,15 @@ int main(int argc, char** argv)
         return 1;  
     } 
 
-    float x,y, orZ; 
-
+    float x,y,z; 
+        float orx;
+        float ory;
+        float orz;
+        float orw;
     char* endPtr; 
-    x = strtof(argv[1], &endPtr);
-    y = strtof(argv[2], &endPtr);
-    orZ = strtof(argv[3], &endPtr);
+    // x = strtof(argv[1], &endPtr);
+    // y = strtof(argv[2], &endPtr);
+    // orZ = strtof(argv[3], &endPtr);
 
     //construct the client
     TiagoClient client(x,y,orZ,"TiagoServer"); 

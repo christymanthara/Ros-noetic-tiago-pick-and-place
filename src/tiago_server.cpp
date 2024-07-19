@@ -70,7 +70,11 @@ bool TiagoServer::auto_moving_routine(const move_base_msgs::MoveBaseGoal &a_goal
     move_base_ac_.sendGoal(a_goal_pose);
 
     // Wait for the action to return
-    move_base_ac_.waitForResult(); // Will wait for infinite time
+    // move_base_ac_.waitForResult(); // Will wait for infinite time
+    // Wait for the robot to reach the goal before a fixed timeout
+    bool goalReached = move_base_ac_.waitForResult(ros::Duration(60.0));
+	
+
 
     if (move_base_ac_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
@@ -80,6 +84,9 @@ bool TiagoServer::auto_moving_routine(const move_base_msgs::MoveBaseGoal &a_goal
     {
         return false;
     }
+    if(!goalReached) move_base_ac_.cancelGoal();
+    return goalReached;
+
 }
 
 void TiagoServer::doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal)
@@ -119,7 +126,7 @@ void TiagoServer::doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal
     }
     else
     {
-        ROS_WARN_STREAM("(Server) ROBOT FAILED TO REACH THE FINAL GOAL POSITION");
+        ROS_WARN_STREAM("(Server) ROBOT FAILED TO REACH THE GOAL POSITION");
         feedback.state = 3; //(Client) ROBOT FAILED TO REACH THE FINAL POSE.
         server.publishFeedback(feedback);
         server.setAborted(result);
@@ -137,6 +144,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "tiago_server");
 
     TiagoServer server("TiagoServer");
+    ROS_INFO("Server is running...");
 
     ros::spin();
     return 0;

@@ -18,7 +18,7 @@ public:
 private:
     void navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal);
     void doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal);
-    void doDetection();
+    // void doDetection();
     bool auto_moving_routine(const move_base_msgs::MoveBaseGoal &a_goal_pose);
 
     ros::NodeHandle nh;
