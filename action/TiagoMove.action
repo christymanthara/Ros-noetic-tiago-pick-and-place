@@ -1,0 +1,18 @@
+#goal
+float64 x
+float64 y
+float64 orZ
+
+float64 orx
+float64 ory
+float64 orz
+float64 orw
+
+---
+#Result definition
+geometry_msgs/Point[] obstacles
+---
+#feedback
+float64 actualX
+float64 actualY
+uint8 state                     
