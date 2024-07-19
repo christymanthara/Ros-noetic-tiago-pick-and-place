@@ -57,7 +57,7 @@ TiagoServer::TiagoServer(std::string name)
 // }
 
 
-bool TiagoServer::auto_moving_routine(const move_base_msgs::MoveBaseGoal &a_goal_pose)
+bool TiagoServer::autoNavigate(const move_base_msgs::MoveBaseGoal &a_goal_pose)
 {
     // Create the action client
     // We also tell the action client that we want to spin a thread by default
@@ -109,8 +109,8 @@ void TiagoServer::doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal
     goalMsg.target_pose.pose.orientation.z = goal->orz;  
     goalMsg.target_pose.pose.orientation.w = goal->orw;
 
-    // Use auto_moving_routine to send the goal and wait for the result
-    bool success = auto_moving_routine(goalMsg);
+    // Use autoNavigate to send the goal and wait for the result
+    bool success = autoNavigate(goalMsg);
 
     if (success)
     {
@@ -138,6 +138,39 @@ void TiagoServer::navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstP
     // Calling the navigation function to navigate to the final pose
     doNavigation(goal);
 }
+
+
+bool goToTable(int id) 
+    {
+		feedback.status = 1;
+		server.publishFeedback(feedback);
+		
+		switch (id) {
+		    case 1:
+		        // Final position for BLUE
+		        return navigateRobotToGoal(8.15, -2.1, 0.0, -110.0);
+		    case 2:
+		        // 2nd waypoint
+		        navigateRobotToGoal(8.40, -4.2, 0.0, 180.0);
+		        // Final position for GREEN
+		        return navigateRobotToGoal(7.50, -4.00, 0.0, 70.0);
+		    case 3:
+		        // Final position for RED
+		        return navigateRobotToGoal(7.20, -2.1, 0.0, -50.0);
+		    default:
+		        ROS_ERROR("Error on selecting object ordering");
+		        return false;
+		}
+        feedback.status = 2;
+		server.publishFeedback(feedback);
+		
+	            
+        feedback.status = 0;
+		server.publishFeedback(feedback);
+		
+    }
+
+
 
 int main(int argc, char **argv)
 {
