@@ -8,9 +8,9 @@
 #include <apriltag_ros/AprilTagDetection.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group_interface/move_group_interface.h>
-#include <assignment2/PoseAction.h>
-#include <assignment2/ArmAction.h>
-#include <assignment2/Scan.h>
+#include <rosnavigatePnP/TiagoMoveAction.h>
+#include <rosnavigatePnP/ArmMoveAction.h>
+#include <rosnavigatePnP/Scan.h>
 #include "headers/utils.h"
 #include "headers/navigation_methods.h"
 
@@ -20,14 +20,14 @@ const float y_offset = 0.5;
 template <typename Action>
 bool isServerAvailable(const actionlib::SimpleActionClient<Action>& client, const std::string& serverName);
 
-void feedbackNavigation(const assignment2::PoseFeedbackConstPtr& feedback);
-void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback);
+void feedbackNavigation(const rosnavigatePnP::PoseFeedbackConstPtr& feedback);
+void feedbackManipulation(const rosnavigatePnP::ArmFeedbackConstPtr& feedback);
 
-int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient<assignment2::PoseAction> &acNavigation, const apriltag_ros::AprilTagDetection &scanResponse);
-int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation);
+int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient<rosnavigatePnP::TiagoMoveAction> &acNavigation, const apriltag_ros::AprilTagDetection &scanResponse);
+int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::SimpleActionClient<rosnavigatePnP::ArmMoveAction> &acManipulation);
 int doScan(ros::ServiceClient &scan_client, std::vector<apriltag_ros::AprilTagDetection> &scanResponse, boost::shared_ptr<const sensor_msgs::LaserScan> msg);
-int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempResponses, actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation);
-bool doRecoveryNavigation(int object_order, actionlib::SimpleActionClient<assignment2::PoseAction> &acNavigation);
+int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempResponses, actionlib::SimpleActionClient<rosnavigatePnP::ArmMoveAction> &acManipulation);
+bool doRecoveryNavigation(int object_order, actionlib::SimpleActionClient<rosnavigatePnP::TiagoMoveAction> &acNavigation);
 
 TiagoClient::TiagoClient(float x, float y, float z, std::string clientName): client(clientName, true)
 {
@@ -120,14 +120,14 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    actionlib::SimpleActionClient<assignment2::PoseAction> acNavigation("poseRevisited", true);
+    actionlib::SimpleActionClient<rosnavigatePnP::TiagoMoveAction> acNavigation("poseRevisited", true);
     if (!isServerAvailable(acNavigation, "Navigation")) return 1;
 
-    actionlib::SimpleActionClient<assignment2::ArmAction> acManipulation("manipulationNode", true);
+    actionlib::SimpleActionClient<rosnavigatePnP::ArmMoveAction> acManipulation("manipulationNode", true);
     if (!isServerAvailable(acManipulation, "Manipulation")) return 1;
 
-    ros::ServiceClient detectionClient = nh.serviceClient<assignment2::Detection>("/object_detection");
-    ros::ServiceClient scan_client = nh.serviceClient<assignment2::Scan>("/scan_node");
+    ros::ServiceClient detectionClient = nh.serviceClient<rosnavigatePnP::Detection>("/object_detection");
+    ros::ServiceClient scan_client = nh.serviceClient<rosnavigatePnP::Scan>("/scan_node");
 
     boost::shared_ptr<const sensor_msgs::LaserScan> msg;
     apriltag_ros::AprilTagDetection nullAprilTag;
@@ -224,7 +224,7 @@ bool isServerAvailable(const actionlib::SimpleActionClient<Action>& client, cons
     return true;
 }
 
-void feedbackNavigation(const assignment2::PoseFeedbackConstPtr& feedback) {
+void feedbackNavigation(const rosnavigatePnP::PoseFeedbackConstPtr& feedback) {
     int status = feedback->status;
 
     switch (status) {
@@ -249,7 +249,7 @@ void feedbackNavigation(const assignment2::PoseFeedbackConstPtr& feedback) {
     }
 }
 
-void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback) {
+void feedbackManipulation(const rosnavigatePnP::ArmFeedbackConstPtr& feedback) {
     int status = feedback->status;
 
     switch (status) {
@@ -283,9 +283,9 @@ void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback) {
     }
 }
 
-int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient<assignment2::PoseAction> &acNavigation, const apriltag_ros::AprilTagDetection &scanResponse)
+int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient<rosnavigatePnP::TiagoMoveAction> &acNavigation, const apriltag_ros::AprilTagDetection &scanResponse)
 {
-    assignment2::PoseGoal navigation_goal;
+    rosnavigatePnP::PoseGoal navigation_goal;
     navigation_goal.operation = goalChoice;
     navigation_goal.id = object_order;
 
@@ -314,7 +314,7 @@ int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient
 
 int doScan(ros::ServiceClient &scan_client, std::vector<apriltag_ros::AprilTagDetection> &scanResponse, boost::shared_ptr<const sensor_msgs::LaserScan> msg)
 {
-    assignment2::Scan srv2;
+    rosnavigatePnP::Scan srv2;
     srv2.request.msg = *msg;
     srv2.request.ready = true;
 
@@ -339,13 +339,13 @@ int doScan(ros::ServiceClient &scan_client, std::vector<apriltag_ros::AprilTagDe
     return 0;
 }
 
-int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation)
+int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::SimpleActionClient<rosnavigatePnP::ArmMoveAction> &acManipulation)
 {
-    assignment2::Detection detection_srv;
+    rosnavigatePnP::Detection detection_srv;
     detection_srv.request.ready = true;
     detection_srv.request.requested_id = object_order;
 
-    assignment2::ArmGoal armGoal;
+    rosnavigatePnP::ArmGoal armGoal;
 
     if(detectionClient.call(detection_srv)){
         armGoal.request = 1;
@@ -376,9 +376,9 @@ int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::Si
     return 0;
 }
 
-int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempResponses, actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation)
+int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempResponses, actionlib::SimpleActionClient<rosnavigatePnP::ArmMoveAction> &acManipulation)
 {
-    assignment2::ArmGoal armGoal;
+    rosnavigatePnP::ArmGoal armGoal;
 
     armGoal.request = 2;
     armGoal.id = object_order;
@@ -403,7 +403,7 @@ int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempR
     return 0;
 }
 
-bool doRecoveryNavigation(int object_order, actionlib::SimpleActionClient<assignment2::PoseAction> &acNavigation){
+bool doRecoveryNavigation(int object_order, actionlib::SimpleActionClient<rosnavigatePnP::TiagoMoveAction> &acNavigation){
     ROS_WARN("RECOVERY PLAN IN USE FOR NAVIGATION!");
 
     geometry_msgs::Pose bluePose;    geometry_msgs::Pose greenPose;     geometry_msgs::Pose redPose;
