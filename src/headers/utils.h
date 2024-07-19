@@ -6,7 +6,7 @@
 #include <cmath>
 #include <utility>
 #include <cmath>
-#include "assignment2/Detection.h"
+#include "rosnavigatePnP/Detection.h"
 
 enum class Status {
     PickStarted = 0,
