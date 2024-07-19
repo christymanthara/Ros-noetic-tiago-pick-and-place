@@ -1,4 +1,21 @@
 #include "rosnavigatePnP/detector.h"
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+#include <apriltag_ros/AprilTagDetectionArray.h>
+#include <rosnavigatePnP/Scan.h>
+#include "headers/scan_methods.h"
+#include "headers/utils.h"
+
+// Add these global variables
+const std::string window_name = "Cylinder Image";
+cv::Mat img;
+ros::Time latestImageStamp;
+
+
+
 
 ObstacleDetector::ObstacleDetector() {
     ros::NodeHandle nh;
@@ -21,17 +38,15 @@ bool ObstacleDetector::isObstacle(const Circle& aCircle) const {
     }
     return true;
 }
-bool ObstacleDetector::isDetectionSuccessful() const
-{
-    return detection_success_;
-}
+
+
 void ObstacleDetector::obstacle_detection(const sensor_msgs::LaserScanConstPtr& aLaser_msg) {
     my_input_points.clear();
     my_point_sets.clear();
     my_circles.clear();
-	detection_success_ = true;
-	
-	// Convert laser scan data to 2D points
+    detection_success_ = true;
+
+    // Convert laser scan data to 2D points
     for (int i = 19; i < aLaser_msg->ranges.size() - 18; i++) {
         float r = aLaser_msg->ranges.at(i);
         if (r >= aLaser_msg->range_min && r <= aLaser_msg->range_max) {
@@ -43,7 +58,37 @@ void ObstacleDetector::obstacle_detection(const sensor_msgs::LaserScanConstPtr& 
     groupPoints(aLaser_msg->angle_increment);
     detectCircles();
     publishObstacles(aLaser_msg);
+
+    // IMAGE SCAN PART
+    std::vector<int> colorOrder = findColorOrder(img);
+    if (colorOrder.size() > 0 && my_circles.size() > 0 && colorOrder.size() == my_circles.size()) {
+        geometry_msgs::PoseArray obstacle_poses;
+        for (size_t i = 0; i < my_circles.size(); ++i) {
+            const Circle& aCircle = my_circles[i];
+            geometry_msgs::Pose pose;
+            pose.position.x = aCircle.center.x;
+            pose.position.y = aCircle.center.y;
+            pose.position.z = 0.0;
+            pose.orientation.w = 1.0;
+            obstacle_poses.poses.push_back(pose);
+
+            // Log the detected obstacle and its corresponding color
+            ROS_INFO("Obstacle %zu: Position (x: %f, y: %f, z: %f), Color: %d", 
+                     i, aCircle.center.x, aCircle.center.y, 0.0, colorOrder[i]);
+        }
+
+        // Publish the obstacles along with their color order
+        // You can add a new publisher for this purpose or modify the existing one
+        obstacle_pub_.publish(obstacle_poses);
+
+        // Additionally, you can publish the colorOrder if needed
+        // For example, using a custom message type that includes both poses and color IDs
+    } else {
+        ROS_WARN("Mismatch in the number of detected obstacles and colors or no valid detections.");
+    }
 }
+
+
 
 void ObstacleDetector::groupPoints(const float& angle_increment) {
     int start_index = 0;
@@ -169,6 +214,63 @@ void ObstacleDetector::publishObstacles(const sensor_msgs::LaserScanConstPtr& aL
     obstacle_pub_.publish(obstacles);
 }
 
+//-----------------------------------------------------------
+// Add the image callback function
+void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
+{        
+    latestImageStamp = imgMsg->header.stamp;
+
+    cv_bridge::CvImagePtr cvImgPtr;
+    try {
+        cvImgPtr = cv_bridge::toCvCopy(imgMsg, sensor_msgs::image_encodings::BGR8);
+    } catch (cv_bridge::Exception& e) {
+        ROS_ERROR("cv_bridge exception: %s", e.what());
+    }
+
+    cvImgPtr->image.copyTo(img);
+}
+
+//-------------------------------------------------------------
+// Helper functions for color detection
+void processRegion(const cv::Mat& region, std::vector<int>& colorOrder) {
+    cv::Mat regionRed, regionGreen, regionBlue;
+    cv::inRange(region, cv::Scalar(0, 0, 200), cv::Scalar(50, 50, 255), regionRed);
+    cv::inRange(region, cv::Scalar(0, 200, 0), cv::Scalar(50, 255, 50), regionGreen);
+    cv::inRange(region, cv::Scalar(200, 0, 0), cv::Scalar(255, 50, 50), regionBlue);
+
+    int redCount = cv::countNonZero(regionRed);
+    int greenCount = cv::countNonZero(regionGreen);
+    int blueCount = cv::countNonZero(regionBlue);
+
+    if (redCount > greenCount && redCount > blueCount)
+        colorOrder.push_back(3);
+    else if (greenCount > redCount && greenCount > blueCount)
+        colorOrder.push_back(2);
+    else
+        colorOrder.push_back(1);
+}
+
+std::vector<int> findColorOrder(const cv::Mat &img) {
+    std::vector<int> colorOrder;
+
+    int width = img.cols;
+    int height = img.rows;
+
+    cv::Rect leftRect(0, 0, width / 3, height);                     // (1/3)
+    cv::Rect centerRect(width / 3, 0, width / 3, height);           // (1/3)
+    cv::Rect rightRect(2 * width / 3, 0, width / 3, height);        // (1/3)
+
+    // Process right region
+    processRegion(img(rightRect), colorOrder);
+    // Process center region
+    processRegion(img(centerRect), colorOrder);
+    // Process left region
+    processRegion(img(leftRect), colorOrder);
+
+    return colorOrder;
+}
+
+
 geometry_msgs::Point ObstacleDetector::transformPoint(const geometry_msgs::Point& point, const tf::StampedTransform& transform) {
     tf::Point tf_point(point.x, point.y, point.z);
     tf::Point transformed_tf_point = transform * tf_point;
@@ -196,5 +298,25 @@ geometry_msgs::PoseArray ObstacleDetector::getObstacles() const {
         }
     }
     return obstacles;
+}
+
+int main(int argc, char** argv) {
+    ros::init(argc, argv, "detector_node");
+    ros::NodeHandle nh;
+
+    // Add image transport for handling images
+    image_transport::ImageTransport it(nh);
+    image_transport::TransportHints transportHint("compressed");
+    image_transport::Subscriber subToImage = it.subscribe("/xtion/rgb/image_raw", 1, imageCallback, transportHint);
+
+    ObstacleDetector detector;
+    ros::Subscriber laser_sub = nh.subscribe("/scan", 1, &ObstacleDetector::obstacle_detection, &detector);
+
+    cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
+
+    ros::spin();
+
+    cv::destroyWindow(window_name);
+    return 0;
 }
 

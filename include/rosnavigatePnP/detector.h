@@ -14,7 +14,7 @@ public:
     void obstacle_detection(const sensor_msgs::LaserScanConstPtr& aLaser_msg);
     int getObstacleCount() const;
     geometry_msgs::PoseArray getObstacles() const;
-	bool isDetectionSuccessful() const;
+    bool isDetectionSuccessful() const;
 
 private:
     struct PointSet {
@@ -53,8 +53,9 @@ private:
     const float min_range = 0.1;
     const float max_range = 10.0;
     const int min_group_points = 5;
-	bool detection_success_;
+    bool detection_success_;
+
+    // Add member variables for image processing
+    cv::Mat img;
+    ros::Time latestImageStamp;
 };
-
-#endif // ROSNAVIGATEPNP_DETECTOR_H
-
