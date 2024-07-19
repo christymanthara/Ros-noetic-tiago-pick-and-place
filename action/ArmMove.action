@@ -1,0 +1,15 @@
+## GOAL
+
+int32 request
+int32 pickid
+
+apriltag_ros/AprilTagDetection[] detected
+---
+## RESULT
+
+bool pickObj
+bool placeObj
+---
+## FEEDBACK
+
+int32 state
