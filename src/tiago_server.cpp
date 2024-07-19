@@ -91,7 +91,7 @@ bool TiagoServer::autoNavigate(const move_base_msgs::MoveBaseGoal &a_goal_pose)
 
 void TiagoServer::doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal)
 {
-    ROS_INFO_STREAM("(Server) Received navigation goal: (" << goal->x << ", " << goal->y << ", " << goal->orZ << ")");
+    ROS_INFO_STREAM("(Server) Received navigation goal: (" << goal->x << ", " << goal->y << ", " << goal->z << ", " << goal->orx << ", " << goal->ory << ", " << goal->orz << ", " << goal->orw << ")");
     // Create the MoveBase message
     move_base_msgs::MoveBaseGoal goalMsg;
 
@@ -148,17 +148,17 @@ bool goToTable(int id)
 		switch (id) {
 		    case 1:
 		        // Final position for BLUE
-		        return navigateRobotToGoal(8.15, -2.1, 0.0, -110.0);
+		        return doNavigation(8.524, -2.268, 0, 0, 0, -0.806, 0.308);
 		    case 2:
 		        // 2nd waypoint
-		        navigateRobotToGoal(8.40, -4.2, 0.0, 180.0);
+		        doNavigation(8.40, -4.2, 0.0, 180.0);
 		        // Final position for GREEN
-		        return navigateRobotToGoal(7.50, -4.00, 0.0, 70.0);
+		        return doNavigation(7.647, -4.090, 0, 0, 0,  0.695, 0.719);
 		    case 3:
 		        // Final position for RED
-		        return navigateRobotToGoal(7.20, -2.1, 0.0, -50.0);
+		        return doNavigation(7.525, -2.068, 0, 0, 0, -0.706, 0.708);
 		    default:
-		        ROS_ERROR("Error on selecting object ordering");
+		        ROS_ERROR("Error with object ordering");
 		        return false;
 		}
         feedback.status = 2;
