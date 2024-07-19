@@ -1,11 +1,10 @@
-#ifndef ROSNAVIGATEPNP_DETECTOR_H
-#define ROSNAVIGATEPNP_DETECTOR_H
-
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/PoseArray.h>
 #include <tf/transform_listener.h>
 #include <opencv2/opencv.hpp>
+#include <actionlib/server/simple_action_server.h>
+#include <rosnavigatePnP/TiagoMoveAction.h>
 
 class ObstacleDetector {
 public:
@@ -42,6 +41,7 @@ private:
     ros::NodeHandle nh_;
     ros::Subscriber laser_sub_;
     ros::Publisher obstacle_pub_;
+    actionlib::SimpleActionServer<rosnavigatePnP::TiagoMoveAction> server;
     std::vector<cv::Point2f> my_input_points;
     std::vector<PointSet> my_point_sets;
     std::vector<Circle> my_circles;

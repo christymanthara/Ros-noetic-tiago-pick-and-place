@@ -6,8 +6,10 @@
 #include <opencv2/opencv.hpp>
 #include <apriltag_ros/AprilTagDetectionArray.h>
 #include <rosnavigatePnP/Scan.h>
+#include <rosnavigatePnP/TiagoMoveFeedback.h>
 #include "headers/scan_methods.h"
 #include "headers/utils.h"
+
 
 // Add these global variables
 const std::string window_name = "Cylinder Image";
@@ -57,12 +59,11 @@ void ObstacleDetector::obstacle_detection(const sensor_msgs::LaserScanConstPtr& 
 
     groupPoints(aLaser_msg->angle_increment);
     detectCircles();
-    publishObstacles(aLaser_msg);
 
     // IMAGE SCAN PART
     std::vector<int> colorOrder = findColorOrder(img);
     if (colorOrder.size() > 0 && my_circles.size() > 0 && colorOrder.size() == my_circles.size()) {
-        geometry_msgs::PoseArray obstacle_poses;
+        rosnavigatePnP::TiagoMoveFeedback feedback;
         for (size_t i = 0; i < my_circles.size(); ++i) {
             const Circle& aCircle = my_circles[i];
             geometry_msgs::Pose pose;
@@ -70,23 +71,23 @@ void ObstacleDetector::obstacle_detection(const sensor_msgs::LaserScanConstPtr& 
             pose.position.y = aCircle.center.y;
             pose.position.z = 0.0;
             pose.orientation.w = 1.0;
-            obstacle_poses.poses.push_back(pose);
 
             // Log the detected obstacle and its corresponding color
             ROS_INFO("Obstacle %zu: Position (x: %f, y: %f, z: %f), Color: %d", 
                      i, aCircle.center.x, aCircle.center.y, 0.0, colorOrder[i]);
+
+            // Populate the feedback message for each obstacle
+            feedback.actualX = aCircle.center.x;
+            feedback.actualY = aCircle.center.y;
+            feedback.color_ids.push_back(colorOrder[i]);
         }
-
-        // Publish the obstacles along with their color order
-        // You can add a new publisher for this purpose or modify the existing one
-        obstacle_pub_.publish(obstacle_poses);
-
-        // Additionally, you can publish the colorOrder if needed
-        // For example, using a custom message type that includes both poses and color IDs
+        // Publish the feedback message with all detected obstacles and their colors
+        server.publishFeedback(feedback);
     } else {
         ROS_WARN("Mismatch in the number of detected obstacles and colors or no valid detections.");
     }
 }
+
 
 
 
@@ -319,4 +320,3 @@ int main(int argc, char** argv) {
     cv::destroyWindow(window_name);
     return 0;
 }
-

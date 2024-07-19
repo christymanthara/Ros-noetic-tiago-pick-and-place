@@ -17,3 +17,4 @@ bool arrivedstatus
 float64 actualX
 float64 actualY
 uint8 state                     
+int32[] color_ids
