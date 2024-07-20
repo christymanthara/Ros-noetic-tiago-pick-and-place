@@ -185,7 +185,7 @@ public:
 	 */
     bool pick(std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
     	
-		Armfeedback.status = 0; // Pick Started
+		Armfeedback.state = 0; // Pick Started
 		server.publishFeedback(Armfeedback);
 
 		int detection_index = 0;
@@ -262,7 +262,7 @@ public:
         		goal_pose.pose.orientation = approach_pose.pose.orientation;
         		break;
         	default:
-        		ROS_ERROR("Error creating appro and goal pose");
+        		ROS_ERROR("Error creating approach and goal pose");
         		break;
         }
         
@@ -291,7 +291,7 @@ public:
 			moveit::core::MoveItErrorCode e = gripper_group.move();
 			sleep(2);
 
-			Armfeedback.status = 2; // Gripper is open
+			Armfeedback.state = 2; // Gripper is open
 			server.publishFeedback(Armfeedback);
 
 			if (!bool(e))
@@ -319,7 +319,7 @@ public:
 	    
 	    success = bool(arm_group.plan(my_plan));
 
-		Armfeedback.status = 4; // Arm is moving
+		Armfeedback.state = 4; // Arm is moving
 		server.publishFeedback(Armfeedback);
 
 	    if(!success)
@@ -413,7 +413,7 @@ public:
 			// Execute the Movement
 			moveit::core::MoveItErrorCode e = gripper_group.move();
 
-			Armfeedback.status = 3; // Gripper is closed
+			Armfeedback.state = 3; // Gripper is closed
 			server.publishFeedback(Armfeedback);
 
 			if (!bool(e))
@@ -422,7 +422,7 @@ public:
 				ROS_INFO_STREAM("Motion to closing gripper ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
     	
-		Armfeedback.status = 5; // Object picked
+		Armfeedback.state = 5; // Object picked
 		server.publishFeedback(Armfeedback);
 
     	//departs
@@ -474,7 +474,7 @@ public:
 			// Execute the Movement
 			moveit::core::MoveItErrorCode e = arm_group.move();
 
-			Armfeedback.status = 7; // Arm is closed
+			Armfeedback.state = 7; // Arm is closed
 			server.publishFeedback(Armfeedback);
 
 			if (!bool(e))
@@ -536,7 +536,7 @@ public:
 	 */
     bool place(std::vector<apriltag_ros::AprilTagDetection> detections, int correct_index){
 		
-		Armfeedback.status = 1; // Place Started
+		Armfeedback.state = 1; // Place Started
 		server.publishFeedback(Armfeedback);
 
 
@@ -596,7 +596,7 @@ public:
 	    
 	    bool success = bool(arm_group.plan(appro_plan));
 
-		Armfeedback.status = 4; // Arm is moving
+		Armfeedback.state = 4; // Arm is moving
 		server.publishFeedback(Armfeedback);
 
 	    if(!success)
@@ -663,7 +663,7 @@ public:
 			moveit::core::MoveItErrorCode e = gripper_group.move();
 			sleep(2);
 
-			Armfeedback.status = 2; // Gripper is open
+			Armfeedback.state = 2; // Gripper is open
 			server.publishFeedback(Armfeedback);
 
 			if (!bool(e))
@@ -674,7 +674,7 @@ public:
 		
 		gripper_group.detachObject(std::to_string(detections[correct_index].id[0]));
 		
-		Armfeedback.status = 6; // Object placed
+		Armfeedback.state = 6; // Object placed
 		server.publishFeedback(Armfeedback);
 
 		//come back to home_pose
@@ -703,7 +703,7 @@ public:
 				ROS_INFO_STREAM("Motion to return to home configuration ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
 
-		Armfeedback.status = 7; // Arm is closed
+		Armfeedback.state = 7; // Arm is closed
 		server.publishFeedback(Armfeedback);
 	  	
         return true;
