@@ -21,7 +21,7 @@ template <typename Action>
 bool isServerAvailable(const actionlib::SimpleActionClient<Action>& client, const std::string& serverName);
 
 void feedbackNavigation(const rosnavigatePnP::PoseFeedbackConstPtr& feedback);
-void feedbackManipulation(const rosnavigatePnP::ArmFeedbackConstPtr& feedback);
+void feedbackManipulation(const rosnavigatePnP::ArmMoveFeedbackConstPtr& feedback);
 
 int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient<rosnavigatePnP::TiagoMoveAction> &acNavigation, const apriltag_ros::AprilTagDetection &scanResponse);
 int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::SimpleActionClient<rosnavigatePnP::ArmMoveAction> &acManipulation);
@@ -249,7 +249,7 @@ void feedbackNavigation(const rosnavigatePnP::PoseFeedbackConstPtr& feedback) {
     }
 }
 
-void feedbackManipulation(const rosnavigatePnP::ArmFeedbackConstPtr& feedback) {
+void feedbackManipulation(const rosnavigatePnP::ArmMoveFeedbackConstPtr& feedback) {
     int status = feedback->status;
 
     switch (status) {
@@ -345,7 +345,7 @@ int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::Si
     detection_srv.request.ready = true;
     detection_srv.request.requested_id = object_order;
 
-    rosnavigatePnP::ArmGoal armGoal;
+    rosnavigatePnP::ArmMoveGoal armGoal;
 
     if(detectionClient.call(detection_srv)){
         armGoal.request = 1;
@@ -378,7 +378,7 @@ int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::Si
 
 int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempResponses, actionlib::SimpleActionClient<rosnavigatePnP::ArmMoveAction> &acManipulation)
 {
-    rosnavigatePnP::ArmGoal armGoal;
+    rosnavigatePnP::ArmMoveGoal armGoal;
 
     armGoal.request = 2;
     armGoal.id = object_order;

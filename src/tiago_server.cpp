@@ -155,7 +155,9 @@ void TiagoServer::navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstP
                 feedback.state = 1;
                 server.publishFeedback(feedback);
                 
-                executionDone = doNavigation(createGoal(8.4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
+                goal = createGoal(8.4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+                boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal);
+                executionDone = doNavigation();
                 if (executionDone) 
                 	executionDone = goToTable(id);
                              
