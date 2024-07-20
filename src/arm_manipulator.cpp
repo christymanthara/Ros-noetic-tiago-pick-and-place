@@ -721,7 +721,7 @@ public:
 		
         switch(goal->request){
             case 1:
-                objectPicked = pick(goal->detected, goal->id);
+                objectPicked = pick(goal->detected, goal->pickid);
                 if (objectPicked){
                     Armresult.objectPicked = objectPicked;
                     server.setSucceeded(Armresult);
@@ -731,7 +731,7 @@ public:
                 }
                 break;
             case 2:
-                objectPlaced = place(goal->detected, goal->id);
+                objectPlaced = place(goal->detected, goal->pickid);
                 if (objectPlaced){
                     Armresult.objectPlaced = objectPlaced;
                     server.setSucceeded(Armresult);
