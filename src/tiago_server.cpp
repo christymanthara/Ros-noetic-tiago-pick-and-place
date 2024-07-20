@@ -169,7 +169,7 @@ void TiagoServer::navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstP
             case 3:
             	ROS_INFO("Operation 3, reaching the place position");
 
-				pose = goal->detection.pose.pose.pose;
+				pose = goal->atdetection.pose.pose.pose;
             	executionDone = goToCylinder(pose);
             	
             	break;
@@ -222,6 +222,7 @@ rosnavigatePnP::TiagoMoveGoal TiagoServer::createGoal(double x, double y, double
     return goal;
 }
 
+
 bool TiagoServer::goToTable(int id) 
 {
     feedback.state = 1;
@@ -267,14 +268,20 @@ bool TiagoServer::goToTable(int id)
     return true;
 }
 
+
 bool TiagoServer::goToScanPosition(int id) {
+    //creating the goal object    
+    rosnavigatePnP::TiagoMoveGoal goal;
+
         if (id == 1 || id == 3) 
         {
 
 			feedback.state = 1;
 			server.publishFeedback(feedback);
             
-            doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>createGoal(8.4, -2, 0.0, 0.0, 0.0, 0.0, 1.0));
+            goal = createGoal(8.4, -2, 0.0, 0.0, 0.0, 0.0, 1.0);
+            // Call the existing doNavigation method with the goal object
+            doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal));
             
             feedback.state = 2;
             server.publishFeedback(feedback);
@@ -289,7 +296,10 @@ bool TiagoServer::goToScanPosition(int id) {
 			server.publishFeedback(feedback);
             
             // tiago started crashing into the table after taking the 1st video, so we added this waypoint
-            doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>createGoal(8.0, -4.3, 0.0, 0.0, 0.0, 0.0, 1.0));
+            goal = createGoal(8.0, -4.3, 0.0, 0.0, 0.0, 0.0, 1.0);
+            
+            // Call the existing doNavigation method with the goal object
+            doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal));
             
             feedback.state = 2;
             server.publishFeedback(feedback);
