@@ -38,6 +38,9 @@ private:
     geometry_msgs::Point transformPoint(const geometry_msgs::Point& point, const tf::StampedTransform& transform);
     float length(const cv::Point2f& aPoint) const;
 
+    // Add function declaration
+    std::vector<int> findColorOrder(const cv::Mat &img);
+
     ros::NodeHandle nh_;
     ros::Subscriber laser_sub_;
     ros::Publisher obstacle_pub_;

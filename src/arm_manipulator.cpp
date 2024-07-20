@@ -17,7 +17,7 @@
 
 
 // Our headers
-#include <rosnavigatePnP/ArmAction.h>
+#include <rosnavigatePnP/ArmMoveAction.h>
 // #include "headers/utils.h"
 
 // Std C++ headers

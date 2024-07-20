@@ -10,24 +10,19 @@
 #include "headers/scan_methods.h"
 #include "headers/utils.h"
 
-
 // Add these global variables
 const std::string window_name = "Cylinder Image";
 cv::Mat img;
 ros::Time latestImageStamp;
 
-
-
-
-ObstacleDetector::ObstacleDetector() {
-    ros::NodeHandle nh;
-    obstacle_pub_ = nh.advertise<geometry_msgs::PoseArray>("obstacles", 10);
+ObstacleDetector::ObstacleDetector() : server(nh_, "tiago_move", false) {  // Initialize the action server
+    obstacle_pub_ = nh_.advertise<geometry_msgs::PoseArray>("obstacles", 10);
+    server.start();  // Start the action server
 }
 
-ObstacleDetector::~ObstacleDetector() {
-}
+ObstacleDetector::~ObstacleDetector() {}
 
-float ObstacleDetector::length(const cv::Point2f& aPoint) const {  // Marked as const
+float ObstacleDetector::length(const cv::Point2f& aPoint) const {
     return sqrt(pow(aPoint.x, 2.0) + pow(aPoint.y, 2.0));
 }
 
@@ -41,14 +36,12 @@ bool ObstacleDetector::isObstacle(const Circle& aCircle) const {
     return true;
 }
 
-
 void ObstacleDetector::obstacle_detection(const sensor_msgs::LaserScanConstPtr& aLaser_msg) {
     my_input_points.clear();
     my_point_sets.clear();
     my_circles.clear();
     detection_success_ = true;
 
-    // Convert laser scan data to 2D points
     for (int i = 19; i < aLaser_msg->ranges.size() - 18; i++) {
         float r = aLaser_msg->ranges.at(i);
         if (r >= aLaser_msg->range_min && r <= aLaser_msg->range_max) {
@@ -60,7 +53,6 @@ void ObstacleDetector::obstacle_detection(const sensor_msgs::LaserScanConstPtr& 
     groupPoints(aLaser_msg->angle_increment);
     detectCircles();
 
-    // IMAGE SCAN PART
     std::vector<int> colorOrder = findColorOrder(img);
     if (colorOrder.size() > 0 && my_circles.size() > 0 && colorOrder.size() == my_circles.size()) {
         rosnavigatePnP::TiagoMoveFeedback feedback;
@@ -72,24 +64,18 @@ void ObstacleDetector::obstacle_detection(const sensor_msgs::LaserScanConstPtr& 
             pose.position.z = 0.0;
             pose.orientation.w = 1.0;
 
-            // Log the detected obstacle and its corresponding color
             ROS_INFO("Obstacle %zu: Position (x: %f, y: %f, z: %f), Color: %d", 
                      i, aCircle.center.x, aCircle.center.y, 0.0, colorOrder[i]);
 
-            // Populate the feedback message for each obstacle
             feedback.actualX = aCircle.center.x;
             feedback.actualY = aCircle.center.y;
             feedback.color_ids.push_back(colorOrder[i]);
         }
-        // Publish the feedback message with all detected obstacles and their colors
         server.publishFeedback(feedback);
     } else {
         ROS_WARN("Mismatch in the number of detected obstacles and colors or no valid detections.");
     }
 }
-
-
-
 
 void ObstacleDetector::groupPoints(const float& angle_increment) {
     int start_index = 0;
@@ -217,8 +203,7 @@ void ObstacleDetector::publishObstacles(const sensor_msgs::LaserScanConstPtr& aL
 
 //-----------------------------------------------------------
 // Add the image callback function
-void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
-{        
+void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg) {        
     latestImageStamp = imgMsg->header.stamp;
 
     cv_bridge::CvImagePtr cvImgPtr;
@@ -257,20 +242,16 @@ std::vector<int> findColorOrder(const cv::Mat &img) {
     int width = img.cols;
     int height = img.rows;
 
-    cv::Rect leftRect(0, 0, width / 3, height);                     // (1/3)
-    cv::Rect centerRect(width / 3, 0, width / 3, height);           // (1/3)
-    cv::Rect rightRect(2 * width / 3, 0, width / 3, height);        // (1/3)
+    cv::Rect leftRect(0, 0, width / 3, height); 
+    cv::Rect centerRect(width / 3, 0, width / 3, height);
+    cv::Rect rightRect(2 * width / 3, 0, width / 3, height); 
 
-    // Process right region
     processRegion(img(rightRect), colorOrder);
-    // Process center region
     processRegion(img(centerRect), colorOrder);
-    // Process left region
     processRegion(img(leftRect), colorOrder);
 
     return colorOrder;
 }
-
 
 geometry_msgs::Point ObstacleDetector::transformPoint(const geometry_msgs::Point& point, const tf::StampedTransform& transform) {
     tf::Point tf_point(point.x, point.y, point.z);
