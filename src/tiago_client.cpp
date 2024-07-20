@@ -20,7 +20,7 @@ const float y_offset = 0.5;
 template <typename Action>
 bool isServerAvailable(const actionlib::SimpleActionClient<Action>& client, const std::string& serverName);
 
-void feedbackNavigation(const rosnavigatePnP::PoseFeedbackConstPtr& feedback);
+void feedbackNavigation(const rosnavigatePnP::TiagoMoveFeedbackConstPtr& feedback);
 void feedbackManipulation(const rosnavigatePnP::ArmMoveFeedbackConstPtr& feedback);
 
 int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient<rosnavigatePnP::TiagoMoveAction> &acNavigation, const apriltag_ros::AprilTagDetection &scanResponse);
@@ -224,10 +224,10 @@ bool isServerAvailable(const actionlib::SimpleActionClient<Action>& client, cons
     return true;
 }
 
-void feedbackNavigation(const rosnavigatePnP::PoseFeedbackConstPtr& feedback) {
-    int status = feedback->status;
+void feedbackNavigation(const rosnavigatePnP::TiagoMoveFeedbackConstPtr& feedback) {
+    int state = feedback->state;
 
-    switch (status) {
+    switch (state) {
         case 0:
             ROS_INFO("Received status: STOPPED");
             break;
@@ -250,9 +250,9 @@ void feedbackNavigation(const rosnavigatePnP::PoseFeedbackConstPtr& feedback) {
 }
 
 void feedbackManipulation(const rosnavigatePnP::ArmMoveFeedbackConstPtr& feedback) {
-    int status = feedback->status;
+    int state = feedback->state;
 
-    switch (status) {
+    switch (state) {
         case 0:
             ROS_INFO("Received status: Pick Started");
             break;
