@@ -23,12 +23,12 @@ struct CartesianCoordinates {
     float y;
 };
 
-struct PoseID{
-	CartesianCoordinates pose;
-	int id;
+struct PoseID {
+    CartesianCoordinates pose;
+    int id;
 };
 
 float degreesToRadians(float degrees);
-CartesianCoordinates degreesToRadians(float r, float theta);
+CartesianCoordinates polarToCartesian(float r, float theta);  // This line was incorrect
 
 #endif // UTILS_H
