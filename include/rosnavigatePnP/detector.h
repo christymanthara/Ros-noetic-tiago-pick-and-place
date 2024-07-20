@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/Image.h>
 #include <geometry_msgs/PoseArray.h>
 #include <tf/transform_listener.h>
 #include <opencv2/opencv.hpp>
@@ -14,6 +15,9 @@ public:
     int getObstacleCount() const;
     geometry_msgs::PoseArray getObstacles() const;
     bool isDetectionSuccessful() const;
+    std::vector<int> findColorOrder(const cv::Mat &img);
+    void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg);
+    void processRegion(const cv::Mat& region, std::vector<int>& colorOrder);
 
 private:
     struct PointSet {
@@ -39,7 +43,8 @@ private:
     float length(const cv::Point2f& aPoint) const;
 
     // Add function declaration
-    std::vector<int> findColorOrder(const cv::Mat &img);
+    // std::vector<int> findColorOrder(const cv::Mat &img);
+    
 
     ros::NodeHandle nh_;
     ros::Subscriber laser_sub_;
