@@ -202,7 +202,7 @@ void TiagoServer::navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstP
         } else {
             ROS_INFO("Navigation aborted - Timeout reached");
             result.arrivedstatus = executionDone;
-            server.setAborted(result_);
+            server.setAborted(result);
         }
     }
 
