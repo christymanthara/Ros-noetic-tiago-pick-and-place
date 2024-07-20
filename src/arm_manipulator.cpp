@@ -723,20 +723,20 @@ public:
             case 1:
                 objectPicked = pick(goal->detected, goal->pickid);
                 if (objectPicked){
-                    Armresult.objectPicked = objectPicked;
+                    Armresult.pickObj = objectPicked;
                     server.setSucceeded(Armresult);
                 } else {
-                    Armresult.objectPicked = objectPicked;
+                    Armresult.pickObj = objectPicked;
                     server.setAborted(Armresult);
                 }
                 break;
             case 2:
                 objectPlaced = place(goal->detected, goal->pickid);
                 if (objectPlaced){
-                    Armresult.objectPlaced = objectPlaced;
+                    Armresult.placeObj = objectPlaced;
                     server.setSucceeded(Armresult);
                 } else {
-                    Armresult.objectPlaced = objectPlaced;
+                    Armresult.placeObj = objectPlaced;
                     server.setAborted(Armresult);
                 }
                 break;

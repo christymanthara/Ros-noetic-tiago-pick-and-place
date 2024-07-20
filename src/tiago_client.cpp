@@ -285,7 +285,7 @@ void feedbackManipulation(const rosnavigatePnP::ArmMoveFeedbackConstPtr& feedbac
 
 int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient<rosnavigatePnP::TiagoMoveAction> &acNavigation, const apriltag_ros::AprilTagDetection &scanResponse)
 {
-    rosnavigatePnP::PoseGoal navigation_goal;
+    rosnavigatePnP::TiagoMoveGoal navigation_goal;
     navigation_goal.operation = goalChoice;
     navigation_goal.id = object_order;
 
