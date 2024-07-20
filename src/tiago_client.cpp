@@ -290,7 +290,7 @@ int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient
     navigation_goal.id = object_order;
 
     if(goalChoice == 3 ){
-        navigation_goal.detection = scanResponse;
+        navigation_goal.atdetection = scanResponse;
     }
 
     acNavigation.sendGoal(navigation_goal, NULL, NULL, &feedbackNavigation);
@@ -349,8 +349,8 @@ int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::Si
 
     if(detectionClient.call(detection_srv)){
         armGoal.request = 1;
-        armGoal.id = object_order;
-        armGoal.detections = detection_srv.response.detections;
+        armGoal.pickid = object_order;
+        armGoal.detected = detection_srv.response.detections;
 
         acManipulation.sendGoal(armGoal, NULL, NULL, &feedbackManipulation);
 
@@ -381,8 +381,8 @@ int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempR
     rosnavigatePnP::ArmMoveGoal armGoal;
 
     armGoal.request = 2;
-    armGoal.id = object_order;
-    armGoal.detections = tempResponses;
+    armGoal.pickid = object_order;
+    armGoal.detected = tempResponses;
 
     acManipulation.sendGoal(armGoal, NULL, NULL, &feedbackManipulation);
 
