@@ -236,7 +236,7 @@ void processRegion(const cv::Mat& region, std::vector<int>& colorOrder) {
         colorOrder.push_back(1);
 }
 
-std::vector<int> findColorOrder(const cv::Mat &img) {
+std::vector<int> ObstacleDetector::findColorOrder(const cv::Mat &img) {
     std::vector<int> colorOrder;
 
     int width = img.cols;
