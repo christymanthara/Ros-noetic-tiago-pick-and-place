@@ -19,7 +19,7 @@ public:
 private:
     bool executionDone = false;
     void navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal);
-    void doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal);
+    bool doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal);
     // void doDetection();
     bool autoNavigate(const move_base_msgs::MoveBaseGoal &a_goal_pose);
 

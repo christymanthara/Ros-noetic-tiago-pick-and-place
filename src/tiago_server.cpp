@@ -74,8 +74,6 @@ bool TiagoServer::autoNavigate(const move_base_msgs::MoveBaseGoal &a_goal_pose)
     // Wait for the robot to reach the goal before a fixed timeout
     bool goalReached = move_base_ac_.waitForResult(ros::Duration(60.0));
 	
-
-
     if (move_base_ac_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
         return true;
@@ -89,7 +87,7 @@ bool TiagoServer::autoNavigate(const move_base_msgs::MoveBaseGoal &a_goal_pose)
 
 }
 
-void TiagoServer::doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal)
+bool TiagoServer::doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal)
 {
     ROS_INFO_STREAM("(Server) Received navigation goal: (" << goal->x << ", " << goal->y << ", " << goal->z << ", " << goal->orx << ", " << goal->ory << ", " << goal->orz << ", " << goal->orw << ")");
     // Create the MoveBase message
@@ -131,6 +129,7 @@ void TiagoServer::doNavigation(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal
         server.publishFeedback(feedback);
         server.setAborted(result);
     }
+    return success;
 }
 
 void TiagoServer::navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstPtr &goal)
@@ -155,9 +154,11 @@ void TiagoServer::navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstP
                 feedback.state = 1;
                 server.publishFeedback(feedback);
                 
-                goal = createGoal(8.4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-                boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal);
-                executionDone = doNavigation();
+                {
+                    auto new_goal = createGoal(8.4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+                    executionDone = doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(new_goal));
+                }
+                
                 if (executionDone) 
                 	executionDone = goToTable(id);
                              
@@ -208,9 +209,6 @@ void TiagoServer::navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstP
         }
     }
 
-
-
-
 rosnavigatePnP::TiagoMoveGoal TiagoServer::createGoal(double x, double y, double z, double orx, double ory, double orz, double orw)
 {
     rosnavigatePnP::TiagoMoveGoal goal;
@@ -245,14 +243,10 @@ bool TiagoServer::goToTable(int id)
             doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal));
             // Final position for GREEN
             goal = createGoal(7.50, -4.00, 0.0, 0.0, 0.0, 0.573576, 0.819152);
-            
-
             break;
         case 3:
             // Final position for RED
             goal = createGoal(7.20, -2.1, 0.0, 0.0, 0.0, -0.422618, 0.906308);
-            
-
             break;
         default:
             ROS_ERROR("Error with object ordering");
@@ -316,10 +310,10 @@ bool TiagoServer::goToScanPosition(int id) {
 		feedback.state = 1;
 		server.publishFeedback(feedback);
 		goal = createGoal(10.3, -4.3, 0.0, 0.0, 0.0, 0.0, 1.0);
-        doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>goal);
+        doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal));
         
         goal = createGoal(11.33, -2.5, 0.0, 0.0, 0.0, 0.731354, 0.681998);
-        bool returned = doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>goal);
+        bool returned = doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal));
         if(returned){
         	feedback.state = 2;
             server.publishFeedback(feedback);
@@ -332,39 +326,39 @@ bool TiagoServer::goToScanPosition(int id) {
         return returned;
     }
     
-     bool TiagoServer::goToCylinder(geometry_msgs::Pose pose) {
+bool TiagoServer::goToCylinder(geometry_msgs::Pose pose) {
 
-		feedback.state = 1;
-		server.publishFeedback(feedback);
-        
-        return doNavigation(pose.position.x, pose.position.y, pose.position.z,0.0, 0.0, 0.70710678, 0.70710678); //check fix
-    }
+	feedback.state = 1;
+	server.publishFeedback(feedback);
+    
+    auto new_goal = createGoal(pose.position.x, pose.position.y, pose.position.z, 0.0, 0.0, 0.70710678, 0.70710678); //check fix
+    return doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(new_goal));
+}
 
 bool TiagoServer::goHome(int id){
 
-        //creating the goal object    
+    //creating the goal object    
     rosnavigatePnP::TiagoMoveGoal goal;
-       ROS_INFO("Operation 0, going HOME");
-       
-       goal=createGoal(10.3, -4.3, 0.0, 0.0, 0.0, 1.0, 0.0);
-        doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal));
+    ROS_INFO("Operation 0, going HOME");
+    
+    goal = createGoal(10.3, -4.3, 0.0, 0.0, 0.0, 1.0, 0.0);
+    doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal));
 
 
-        goal = createGoal(8.4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    goal = createGoal(8.4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 
-       bool returned = doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal));	 // HOME
-       if(returned){
-        	feedback.state = 2;
-            server.publishFeedback(feedback);
-        }
-        
-        feedback.state = 0;
-		server.publishFeedback(feedback);
-		
-        
-        return returned;
+    bool returned = doNavigation(boost::make_shared<rosnavigatePnP::TiagoMoveGoal>(goal));	 // HOME
+    if(returned){
+    	feedback.state = 2;
+        server.publishFeedback(feedback);
     }
-
+    
+    feedback.state = 0;
+	server.publishFeedback(feedback);
+	
+    
+    return returned;
+}
 
 int main(int argc, char **argv)
 {
@@ -376,4 +370,3 @@ int main(int argc, char **argv)
     ros::spin();
     return 0;
 }
-
