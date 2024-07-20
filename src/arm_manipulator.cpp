@@ -57,7 +57,7 @@ public:
 	 * @brief Creates and adds the collision objects on the table to perform the pick, called from the method "pick"
 	 * @param detected vector of detected of the tags
 	 */
-     void ArmAction::addCollisionObjects(std::vector<apriltag_ros::AprilTagDetection> detected)
+     void addCollisionObjects(std::vector<apriltag_ros::AprilTagDetection> detected)
 {
     std::vector<moveit_msgs::CollisionObject> collision_objects;
 
