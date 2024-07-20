@@ -41,8 +41,8 @@ protected:
 	moveit::planning_interface::MoveGroupInterface gripper_group;
 
 public:
-
-    ArmMoveAction(std::string name) : server(nh_, name, boost::bind(&ArmMoveAction::executeArmMove, this, _1), false), action_name_(name),
+//i think it is the constructor
+    ArmAction(std::string name) : server(nh_, name, boost::bind(&ArmAction::executeArmMove, this, _1), false), action_name_(name),
     plan_scene_interface(),
     arm_group("arm_torso"),
     gripper_group("gripper")
@@ -50,7 +50,7 @@ public:
     	server.start();
     }
     
-    ~ArmMoveAction(void){}
+    ~ArmAction(void){}
     
 
 	/**
@@ -752,7 +752,7 @@ int main(int argc, char** argv)
 {
 	
 	ros::init(argc, argv, "manipulationNode");
-    ArmMoveAction server("manipulationNode");
+    ArmAction server("manipulationNode");
     ROS_INFO("Manipulation Server is running...");
  
     ros::spin(); 
