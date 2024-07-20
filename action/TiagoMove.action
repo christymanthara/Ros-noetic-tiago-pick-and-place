@@ -8,6 +8,7 @@ float64 ory
 float64 orz
 float64 orw
 int32 operation
+int32 id
 apriltag_ros/AprilTagDetection atdetection
 ---
 #Result definition
