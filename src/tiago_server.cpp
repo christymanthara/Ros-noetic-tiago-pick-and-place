@@ -176,7 +176,7 @@ void TiagoServer::navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstP
        
        		case 4:
        		   	ROS_INFO("Operation 4, reaching home position, then table position");
-       			executionDone = goToHome(id);
+       			executionDone = goHome(id);
        			if (executionDone) 
        				executionDone = goToTable(id);
        				
@@ -184,7 +184,7 @@ void TiagoServer::navAndDetectCallback(const rosnavigatePnP::TiagoMoveGoalConstP
                 
             case 5:
                	ROS_INFO("Operation 5, reaching HOME position.");
-               	executionDone = goToHome(id);
+               	executionDone = goHome(id);
                	
                	break;
                	
