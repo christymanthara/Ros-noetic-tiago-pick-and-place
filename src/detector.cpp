@@ -218,7 +218,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg) {
 
 //-------------------------------------------------------------
 // Helper functions for color detection
-void processRegion(const cv::Mat& region, std::vector<int>& colorOrder) {
+void ObstacleDetector::processRegion(const cv::Mat& region, std::vector<int>& colorOrder) {
     cv::Mat regionRed, regionGreen, regionBlue;
     cv::inRange(region, cv::Scalar(0, 0, 200), cv::Scalar(50, 50, 255), regionRed);
     cv::inRange(region, cv::Scalar(0, 200, 0), cv::Scalar(50, 255, 50), regionGreen);

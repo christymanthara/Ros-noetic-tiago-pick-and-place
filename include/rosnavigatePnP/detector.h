@@ -15,10 +15,7 @@ public:
     int getObstacleCount() const;
     geometry_msgs::PoseArray getObstacles() const;
     bool isDetectionSuccessful() const;
-    std::vector<int> findColorOrder(const cv::Mat &img);
-    void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg);
-    void processRegion(const cv::Mat& region, std::vector<int>& colorOrder);
-
+    
 private:
     struct PointSet {
         cv::Point2f first_point;
@@ -41,6 +38,10 @@ private:
     void publishObstacles(const sensor_msgs::LaserScanConstPtr& aLaser_msg);
     geometry_msgs::Point transformPoint(const geometry_msgs::Point& point, const tf::StampedTransform& transform);
     float length(const cv::Point2f& aPoint) const;
+    std::vector<int> findColorOrder(const cv::Mat &img);
+    //void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg);
+    void processRegion(const cv::Mat& region, std::vector<int>& colorOrder);
+
 
     // Add function declaration
     // std::vector<int> findColorOrder(const cv::Mat &img);
