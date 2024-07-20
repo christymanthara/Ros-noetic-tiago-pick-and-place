@@ -55,9 +55,9 @@ public:
 
 	/**
 	 * @brief Creates and adds the collision objects on the table to perform the pick, called from the method "pick"
-	 * @param detections vector of detections of the tags
+	 * @param detected vector of detected of the tags
 	 */
-     void ArmAction::addCollisionObjects(std::vector<apriltag_ros::AprilTagDetection> detections)
+     void ArmAction::addCollisionObjects(std::vector<apriltag_ros::AprilTagDetection> detected)
 {
     std::vector<moveit_msgs::CollisionObject> collision_objects;
 
@@ -88,7 +88,7 @@ public:
     collision_objects.push_back(table_object);
 
     // Adding obstacle collision objects
-    for (const auto& detection : detections)
+    for (const auto& detection : detected)
     {
         moveit_msgs::CollisionObject obstacle_object;
         shape_msgs::SolidPrimitive obj_primitive;
@@ -179,24 +179,24 @@ public:
 		
 	/**
 	 * @brief picks the object identified by requestedID
-	 * @param detections array output of AprilTagDetection, contains all poses and dimensions of the tags found during scan
+	 * @param detected array output of AprilTagDetection, contains all poses and dimensions of the tags found during scan
 	 * @param requestedID id of the object required to pick
 	 * @return TRUE if executes correctly and FALSE otherwise.
 	 */
-    bool pick(std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
+    bool pick(std::vector<apriltag_ros::AprilTagDetection> detected, int requestedID){
     	
 		Armfeedback.state = 0; // Pick Started
 		server.publishFeedback(Armfeedback);
 
 		int detection_index = 0;
-		  while(detections[detection_index].id[0] != requestedID){
+		  while(detected[detection_index].id[0] != requestedID){
 		  	detection_index++;
 		}
 		
     	// Creating approach/depart poses
         geometry_msgs::PoseStamped approach_pose;
         approach_pose.header.frame_id = "map";
-        tf2::Quaternion original_quaternion(detections[detection_index].pose.pose.pose.orientation.x, detections[detection_index].pose.pose.pose.orientation.y, detections[detection_index].pose.pose.pose.orientation.z, detections[detection_index].pose.pose.pose.orientation.w);
+        tf2::Quaternion original_quaternion(detected[detection_index].pose.pose.pose.orientation.x, detected[detection_index].pose.pose.pose.orientation.y, detected[detection_index].pose.pose.pose.orientation.z, detected[detection_index].pose.pose.pose.orientation.w);
         tf2::Matrix3x3 m(original_quaternion);
 		double roll, pitch, yaw;
 		tf2::Quaternion rotation_about_y;
@@ -206,11 +206,11 @@ public:
         geometry_msgs::PoseStamped goal_pose;
         goal_pose.header.frame_id = "map";
         
-        switch(detections[detection_index].id[0]){
+        switch(detected[detection_index].id[0]){
         	case 1:
-        		approach_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
-				approach_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
-				approach_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.20;  
+        		approach_pose.pose.position.x = detected[detection_index].pose.pose.pose.position.x;
+				approach_pose.pose.position.y = detected[detection_index].pose.pose.pose.position.y;
+				approach_pose.pose.position.z = detected[detection_index].pose.pose.pose.position.z + 0.20;  
 				
 				m.getRPY(roll, pitch, yaw);
 				pitch = M_PI / 2;
@@ -219,16 +219,16 @@ public:
 				rotation_about_y.normalize();
 				approach_pose.pose.orientation = tf2::toMsg(rotation_about_y);
 				
-        		goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
-        		goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
-        		goal_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.01; 
+        		goal_pose.pose.position.x = detected[detection_index].pose.pose.pose.position.x;
+        		goal_pose.pose.position.y = detected[detection_index].pose.pose.pose.position.y;
+        		goal_pose.pose.position.z = detected[detection_index].pose.pose.pose.position.z + 0.01; 
         		goal_pose.pose.orientation = approach_pose.pose.orientation;
         		
         		break;
         	case 2:
-        		approach_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x + 0.015;
-				approach_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y + 0.015;
-				approach_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.20;  
+        		approach_pose.pose.position.x = detected[detection_index].pose.pose.pose.position.x + 0.015;
+				approach_pose.pose.position.y = detected[detection_index].pose.pose.pose.position.y + 0.015;
+				approach_pose.pose.position.z = detected[detection_index].pose.pose.pose.position.z + 0.20;  
 				
 				m.getRPY(roll, pitch, yaw);
 				pitch = M_PI / 2;
@@ -238,16 +238,16 @@ public:
 				rotation_about_y.normalize();
 				approach_pose.pose.orientation = tf2::toMsg(rotation_about_y);
 				
-        		goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x + 0.015;
-        		goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y + 0.015;
+        		goal_pose.pose.position.x = detected[detection_index].pose.pose.pose.position.x + 0.015;
+        		goal_pose.pose.position.y = detected[detection_index].pose.pose.pose.position.y + 0.015;
         		goal_pose.pose.position.z =  0.755 + 0.12;
         		goal_pose.pose.orientation = approach_pose.pose.orientation;
         		
         		break;
         	case 3:
-        		approach_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
-				approach_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
-				approach_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.20;  
+        		approach_pose.pose.position.x = detected[detection_index].pose.pose.pose.position.x;
+				approach_pose.pose.position.y = detected[detection_index].pose.pose.pose.position.y;
+				approach_pose.pose.position.z = detected[detection_index].pose.pose.pose.position.z + 0.20;  
 				
 				m.getRPY(roll, pitch, yaw);
 				pitch = M_PI / 2;
@@ -256,8 +256,8 @@ public:
 				rotation_about_y.normalize();
 				approach_pose.pose.orientation = tf2::toMsg(rotation_about_y);
 				
-        		goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
-        		goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
+        		goal_pose.pose.position.x = detected[detection_index].pose.pose.pose.position.x;
+        		goal_pose.pose.position.y = detected[detection_index].pose.pose.pose.position.y;
         		goal_pose.pose.position.z = 0.755 + 0.12; 
         		goal_pose.pose.orientation = approach_pose.pose.orientation;
         		break;
@@ -308,7 +308,7 @@ public:
 		home_pose = arm_group.getCurrentJointValues();
 		
 		//add ollision objects to make tiago avoid them while reaching approach_pose
-		addCollisionObjects(detections);
+		addCollisionObjects(detected);
 
 		arm_group.setPlannerId("SBLkConfigDefault");
 		arm_group.setStartStateToCurrentState();
@@ -368,7 +368,7 @@ public:
 		std::vector<std::string> touch_links;
 		touch_links.push_back("gripper_left_finger_link");
 		touch_links.push_back("gripper_right_finger_link");
-		std::string object_id = std::to_string(detections[detection_index].id[0]);
+		std::string object_id = std::to_string(detected[detection_index].id[0]);
 		gripper_group.attachObject(object_id, "gripper_grasping_frame", touch_links);
     	
     	
@@ -381,18 +381,18 @@ public:
 		
 		std::vector<double> close_gripper_values;
 		
-		switch(detections[detection_index].id[0]){
+		switch(detected[detection_index].id[0]){
 			case 1:
-				close_gripper_values.push_back(sqrt(2*(detections[detection_index].size[0]*detections[detection_index].size[0]))/2 - 0.001);
-				close_gripper_values.push_back(sqrt(2*(detections[detection_index].size[0]*detections[detection_index].size[0]))/2 - 0.001);
+				close_gripper_values.push_back(sqrt(2*(detected[detection_index].size[0]*detected[detection_index].size[0]))/2 - 0.001);
+				close_gripper_values.push_back(sqrt(2*(detected[detection_index].size[0]*detected[detection_index].size[0]))/2 - 0.001);
 				break;
 			case 2:
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.001);
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.001);
+				close_gripper_values.push_back((detected[detection_index].size[0])/2 - 0.001);
+				close_gripper_values.push_back((detected[detection_index].size[0])/2 - 0.001);
 				break;
 			case 3:
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.001);
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.001);
+				close_gripper_values.push_back((detected[detection_index].size[0])/2 - 0.001);
+				close_gripper_values.push_back((detected[detection_index].size[0])/2 - 0.001);
     			break;
     		default:
     			ROS_ERROR("received object id to be attached represents an obstacle object, cannot attach it");
@@ -489,10 +489,10 @@ public:
     
 	/**
 	 * @brief Adds the cylindes as collision objects
-	 * @param detections array containing all necessary info to create the collision objects, as poses and dimensions
+	 * @param detected array containing all necessary info to create the collision objects, as poses and dimensions
 	 * @param correct_index index of the correct cylinder where we want to place the object 
 	 */
-    void addPlaceCollisionCylinder(std::vector<apriltag_ros::AprilTagDetection> detections, int correct_index){
+    void addPlaceCollisionCylinder(std::vector<apriltag_ros::AprilTagDetection> detected, int correct_index){
     	
     	std::vector<moveit_msgs::CollisionObject> collision_objects;
 		
@@ -500,7 +500,7 @@ public:
 		shape_msgs::SolidPrimitive primitive;
 		geometry_msgs::Pose cylinder_pose;
 		
-		std::string place_id = "place_cylinder_" + std::to_string(detections[correct_index].id[0]);
+		std::string place_id = "place_cylinder_" + std::to_string(detected[correct_index].id[0]);
 		place_cylinder.id = place_id; //object_order
 		primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
 		place_cylinder.header.frame_id = "map";
@@ -509,8 +509,8 @@ public:
 		primitive.dimensions[0] = 0.70;  // height
 		primitive.dimensions[1] = 0.22;  // radius
 		
-		cylinder_pose.position.x = detections[correct_index].pose.pose.pose.position.x;
-		cylinder_pose.position.y = detections[correct_index].pose.pose.pose.position.y;
+		cylinder_pose.position.x = detected[correct_index].pose.pose.pose.position.x;
+		cylinder_pose.position.y = detected[correct_index].pose.pose.pose.position.y;
 		cylinder_pose.position.z = 0.35;
 		cylinder_pose.orientation.x = 0.0;
 		cylinder_pose.orientation.y = 0.0;
@@ -530,11 +530,11 @@ public:
 
 	/**
 	 * @brief places the object that tiago is holding in its gripper
-	 * @param detections array containing all necessary info to place the object, as poses and dimensions
+	 * @param detected array containing all necessary info to place the object, as poses and dimensions
 	 * @param correct_index index of the correct cylinder where we want to place the object
 	 * @return TRUE if executes correctly and FALSE otherwise.
 	 */
-    bool place(std::vector<apriltag_ros::AprilTagDetection> detections, int correct_index){
+    bool place(std::vector<apriltag_ros::AprilTagDetection> detected, int correct_index){
 		
 		Armfeedback.state = 1; // Place Started
 		server.publishFeedback(Armfeedback);
@@ -544,14 +544,14 @@ public:
 		
 		geometry_msgs::PoseStamped approach_pose;
         approach_pose.header.frame_id = "map";
-        approach_pose.pose.position.x = detections[correct_index].pose.pose.pose.position.x;
-        approach_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y;
+        approach_pose.pose.position.x = detected[correct_index].pose.pose.pose.position.x;
+        approach_pose.pose.position.y = detected[correct_index].pose.pose.pose.position.y;
         approach_pose.pose.position.z = table_height + 0.20;
 		
 		geometry_msgs::PoseStamped place_pose;
         place_pose.header.frame_id = "map";
-        place_pose.pose.position.x = detections[correct_index].pose.pose.pose.position.x;
-        place_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y;
+        place_pose.pose.position.x = detected[correct_index].pose.pose.pose.position.x;
+        place_pose.pose.position.y = detected[correct_index].pose.pose.pose.position.y;
         
 		double roll = 0.0;
 		double pitch = M_PI / 2;
@@ -564,7 +564,7 @@ public:
 		approach_pose.pose.orientation = tf2::toMsg(rotation_about_y);
         
         
-        switch(detections[correct_index].id[0]){
+        switch(detected[correct_index].id[0]){
         	case 1:
         		place_pose.pose.position.z = table_height + 0.17; 
         		break;
@@ -579,7 +579,7 @@ public:
         moveit::planning_interface::MoveGroupInterface::Plan place_plan;
 	  	
 		//create place_cylinder collision object to be avoided during place motion
-		addPlaceCollisionCylinder(detections, correct_index);
+		addPlaceCollisionCylinder(detected, correct_index);
 		
 		//place the object
 		arm_group.setPlannerId("SBLkConfigDefault");
@@ -672,7 +672,7 @@ public:
 				ROS_INFO_STREAM("Motion to opening gripper ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
 		
-		gripper_group.detachObject(std::to_string(detections[correct_index].id[0]));
+		gripper_group.detachObject(std::to_string(detected[correct_index].id[0]));
 		
 		Armfeedback.state = 6; // Object placed
 		server.publishFeedback(Armfeedback);
@@ -721,7 +721,7 @@ public:
 		
         switch(goal->request){
             case 1:
-                objectPicked = pick(goal->detections, goal->id);
+                objectPicked = pick(goal->detected, goal->id);
                 if (objectPicked){
                     Armresult.objectPicked = objectPicked;
                     server.setSucceeded(Armresult);
@@ -731,7 +731,7 @@ public:
                 }
                 break;
             case 2:
-                objectPlaced = place(goal->detections, goal->id);
+                objectPlaced = place(goal->detected, goal->id);
                 if (objectPlaced){
                     Armresult.objectPlaced = objectPlaced;
                     server.setSucceeded(Armresult);
