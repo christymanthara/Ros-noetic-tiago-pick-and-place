@@ -1,0 +1,13 @@
+<!-- launch file 3/3-->
+<!-- only to be run after detectionandmanipulation.launch-->  
+
+
+<launch>
+<!-- Step 1: Launch  barrel_scan_node -->
+    <node pkg="rosnavigatePnP" type="barrelscan_node" name="barrelscan_node" output="screen"/>
+    
+<!-- Step 2: Launch  tiago_client_node -->
+	<node pkg="rosnavigatePnP" type="tiago_client_node" name="tiago_client_node" output="screen"/>
+</launch>
+
+

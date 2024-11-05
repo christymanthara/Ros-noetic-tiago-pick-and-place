@@ -1,0 +1,11 @@
+## Request
+
+bool scanready
+sensor_msgs/LaserScan msg
+---
+## Response
+
+# cylinderposes vector (it should contain all the three cylinders)
+geometry_msgs/Pose[] cylinderposes
+# CylinderPoses[0] will be associated to id color in cylcolor[0] and so on 
+int32[] cylcolor

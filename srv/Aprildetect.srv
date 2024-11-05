@@ -1,0 +1,9 @@
+##Request
+
+bool ready
+int32 april_id
+---
+##Response
+apriltag_ros/AprilTagDetection[] detections
+
+
